@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import socket, xlwt, dns.resolver, os, logging, tld
-from threading import Thread
 from multiprocessing import Pool
 
 
@@ -17,14 +16,12 @@ def checkConnectionStatus(ip_addr):
 	return (ip_addr, 'Up!' if os.system("ping -c 1 -W 0 " + ip_addr + ' | 2>&1') == 0 else 'Down!')
 
 def printRecordsAndSaveToExcel(outputList, statusList):
-	recordNum = 3
+	recordNum = 2
 	# Printing the output to the console
-	print '{0:13s}     {1:18s}     {2:30s}     {3:18s}    {4:8.8}\n'\
+	print '{0:13s} {1:18s} {2:37s} {3:18s} {4:8.8}\n'\
 	.format('Hostname', 'IP Address', 'MX Record', 'MX IP Address', 'Status')
 
 	# Saving to Excel Spreadsheet
-	book = xlwt.Workbook(encoding="utf-8")
-	sheet1 = book.add_sheet("Sheet 1")
 	sheet1.write(0,0, 'Hostname')
 	sheet1.write(0,1, 'IP Address')
 	sheet1.write(0,2, 'MX Record')
@@ -32,7 +29,7 @@ def printRecordsAndSaveToExcel(outputList, statusList):
 	sheet1.write(0,4, 'Status')
 
 	for record in outputList:
-		print '{0:13s}     {1:18.15s}     {2:30s}     {3:18s}    {4:8.8}'\
+		print '{0:13s} {1:18s} {2:37s} {3:18s} {4:8.8}'\
 			.format(record[0], record[1], record[2], record[3], \
 				[status[1] for status in statusList if status[0] == record[3]][0])
 		sheet1.write(recordNum,0, record[0])
@@ -41,9 +38,6 @@ def printRecordsAndSaveToExcel(outputList, statusList):
 		sheet1.write(recordNum,3, record[3])
 		sheet1.write(recordNum,4, [status[1] for status in statusList if status[0] == record[3]][0])
 		recordNum += 1
-
-	book.save('/Users/AR/Desktop/IPlookups.xls')
-	print '\nSpreadsheet saved!'
 
 
 def main():
@@ -71,7 +65,7 @@ def main():
 		getMXRecord(domainName)))
 		except Exception, e:
 			unResolvedHostList.append(domainName)
-			logger.info('Can not resolve --> ' + domainName + '\n' )
+			logger.info('Can Not Resolve --> ' + domainName + '\n' )
 
 	outputList = []
 	for record in domainDetailsList:
@@ -86,17 +80,34 @@ def main():
 	 
 	if len(unResolvedHostList):
 		print 
-		logger.info(list(set(unResolvedHostList)))
+		sheet2 = book.add_sheet('Error Host Worksheet')
+		sheet2.write(0,0, 'Host with Invalid Domain Names')
+		sheet2.write(0,1, 'Host with No MX Records')
+		rowCount = row2Count = 2
+		for host in list(set(unResolvedHostList)):
+			if host.startswith('http'):
+				sheet2.write(rowCount,0, host)
+				rowCount += 1
+			else:
+				sheet2.write(row2Count,1, host)
+				row2Count += 1
+
+	
 
 if __name__ == '__main__':
 	# Define Logging parameters
 	logging.basicConfig(level=logging.INFO)
 	logger = logging.getLogger(__name__)
 
-	print '{:*^104}'.format(' Web Lookup! ')
+	book = xlwt.Workbook(encoding="utf-8")
+	sheet1 = book.add_sheet("Web Lookup Worksheet")
+
+	print '{:*^94}'.format(' Web Lookup! ')
 	print 
 
-	main()	
-	print 
-	print '{:*^104}'.format(' EOP ')
+	main()
 
+	book.save('/Users/AR/Desktop/weblookup.xls')
+	print '\nSpreadsheet saved!'	
+	print 
+	print '{:*^94}'.format(' EOP ')

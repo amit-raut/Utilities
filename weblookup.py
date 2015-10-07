@@ -70,7 +70,12 @@ def main():
 	outputList = []
 	for record in domainDetailsList:
 		for i in xrange(len(record[2])):
-			outputList.append((record[0], record[1], record[2][i], socket.gethostbyname(record[2][i])))
+			try:
+				outputList.append((record[0], record[1], record[2][i], socket.gethostbyname(record[2][i])))
+			except Exception, e:
+				unResolvedHostList.append(url)
+				logger.info('Invalid Domain Name --> ' + url + '\n')
+			
 	
 	mypool = Pool(len(outputList) - 1)
 	statusList = mypool.map(checkConnectionStatus, [ip[3] for ip in outputList])

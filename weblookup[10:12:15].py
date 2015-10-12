@@ -21,15 +21,12 @@ def getMXRecord(url_record):
 def printandSave(record):
 	global unResolvedHostList
 	global recordNum
-	recordNum += 1
 	outList = []
 	try:
 		mxRecordList = [(entry, socket.gethostbyname(entry)) for entry in getMXRecord(record)]
 		for i in xrange(len(mxRecordList)):
 			outList.append((record, socket.gethostbyname(record), mxRecordList[i][0], mxRecordList[i][1]))
 		
-		# print len(outList)
-
 		for entry in outList:
 			print '{0:20s} {1:18s} {2:37s} {3:18s}'\
 				.format(entry[0], entry[1], entry[2], entry[3])
@@ -38,6 +35,7 @@ def printandSave(record):
 			sheet1.write(recordNum,1, entry[1])
 			sheet1.write(recordNum,2, entry[2])
 			sheet1.write(recordNum,3, entry[3])
+			recordNum += 1
 
 		book.save('/Users/AR/Desktop/weblookup_' + str(dt.now().date()) +'.xls')
 	except Exception, e:
@@ -101,6 +99,6 @@ if __name__ == '__main__':
 	sheet1.write(0,3, 'MX IP Address')
 
 	main()	
-		
-	print '\nSpreadsheet saved!'
+
+	print '\nSpreadsheet saved! ' + str(recordNum - 1) + ' added to Spreadsheet.'	
 	print '{:*^94}\n'.format(' EOP ')
